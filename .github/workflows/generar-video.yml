@@ -1,0 +1,32 @@
+name: Generar video con HeyGen
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  generar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Leer guion
+        id: guion
+        run: |
+          CONTENT=$(cat script.txt | jq -Rs .)
+          echo "guion=$CONTENT" >> $GITHUB_OUTPUT
+
+      - name: Crear video con HeyGen
+        env:
+          HEYGEN_API_KEY: ${{ secrets.HEYGEN_API_KEY }}
+        run: |
+          curl -s -X POST "https://api.heygen.com/v2/video/generate" \
+            -H "x-api-key: $HEYGEN_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"title\": \"Video de presentación IA\",
+              \"script\": ${{ steps.guion.outputs.guion }},
+              \"avatar_id\": \"5b4b71f27b2a4d76beed36f9b7e1f9e5\",
+              \"voice_id\": \"1d8f6e4c2f0a4a7c89b6b29a7b4a5f63\",
+              \"test\": false
+            }"
